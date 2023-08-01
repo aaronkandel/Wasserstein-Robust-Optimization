@@ -5,7 +5,7 @@ C. Duan, W. Fang, L. Jiang, L. Yao and J. Liu, "Distributionally Robust Chance-C
 
 # Installation
 
-The following steps to install this directory, and get started solving distributionally robust optimization programs!
+Consider the following steps to install this directory, and get started solving your own distributionally robust optimization programs!
 
 1. clone repository
 2. Navigate to the "" directory, and run the following commands:
