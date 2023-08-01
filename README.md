@@ -1,5 +1,5 @@
 # Wasserstein Robust Optimization
-Starter pack for distributionally robust chance-constrained optimization using the Wasserstein distance. Implementation of the equivalent chance-constraint reformulation from the following paper:
+Starter pack for distributionally robust chance-constrained optimization using the Wasserstein distance. This is specifically an unofficial implementation of the equivalent chance-constraint reformulation referenced in the following paper:
 
 C. Duan, W. Fang, L. Jiang, L. Yao and J. Liu, "Distributionally Robust Chance-Constrained Approximate AC-OPF With Wasserstein Metric," in IEEE Transactions on Power Systems, vol. 33, no. 5, pp. 4924-4936, Sept. 2018, doi: 10.1109/TPWRS.2018.2807623.
 
