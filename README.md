@@ -7,7 +7,7 @@ C. Duan, W. Fang, L. Jiang, L. Yao and J. Liu, "Distributionally Robust Chance-C
 
 Consider the following steps to install this directory, and get started solving your own distributionally robust optimization programs:
 
-1. clone repository
+1. Clone the repository. This codebase is designed for use with Python 3.8.
 2. Navigate to the root directory and run the following commands:\
    a. pip install -r requirements.txt\
    b. pip install -e .
