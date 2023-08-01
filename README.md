@@ -5,13 +5,13 @@ C. Duan, W. Fang, L. Jiang, L. Yao and J. Liu, "Distributionally Robust Chance-C
 
 # Installation
 
-Consider the following steps to install this directory, and get started solving your own distributionally robust optimization programs!
+Consider the following steps to install this directory, and get started solving your own distributionally robust optimization programs:
 
 1. clone repository
-2. Navigate to the root directory, and run the following commands:\
+2. Navigate to the root directory and run the following commands:\
    a. pip install -r requirements.txt\
    b. pip install -e .
 
-Now, you are ready to get started running code.
+Now you're ready to get started running code!
 
-To test the DRO reformulation algorithm, there are several scripts already included in the repo. These include "vectorExample.py" and "scalarExample.py." 
+To test the DRO reformulation algorithm, use the script "vectorExample.py" already included in the repo.
