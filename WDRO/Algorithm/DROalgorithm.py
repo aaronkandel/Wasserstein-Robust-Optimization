@@ -7,7 +7,7 @@ import time
 import numpy as np
 import copy
 
-# This code is not optimized, only god can judge me.
+
 
 
 class DRO(object):
