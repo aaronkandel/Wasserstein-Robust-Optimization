@@ -35,7 +35,7 @@ class DRO(object):
                 residuals = residuals.T
                 print('Input data incorrectly formatted - columns are random variables and rows are samples')
 
-        self.residuals = np.array(residuals)  # n x m, where n is the dimension of a sample, and
+        self.residuals = residuals  # n x m, where n is the dimension of a sample, and
         # m is the total number of samples:
         self.n, self.m = self.residuals.shape
         self.eta = eta
