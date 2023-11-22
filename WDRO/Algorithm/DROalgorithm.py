@@ -8,8 +8,6 @@ import numpy as np
 import copy
 
 
-
-
 class DRO(object):
     """
     Description: This class represents the object that calculates and provides
@@ -30,13 +28,23 @@ class DRO(object):
         Returns:
 
         """
-        self.residuals = residuals  # n x m, where n is the dimension of a sample, and
+        def dim_test(residuals):
+            rows, cols = residuals.shape
+            # Tests correct formatting of input data:
+            if rows>cols:
+                residuals = residuals.T
+                print('Input data incorrectly formatted - columns are random variables and rows are samples')
+
+        self.residuals = np.array(residuals)  # n x m, where n is the dimension of a sample, and
         # m is the total number of samples:
         self.n, self.m = self.residuals.shape
         self.eta = eta
         self.beta = beta
         self.numels = self.residuals
         self.verbosity = verbosity
+
+
+
 
 
     def norm_dat(self):
@@ -157,7 +165,7 @@ class DRO(object):
             sig = (sighat + sigu) / 2.0
             ub2 = ub
             lb2 = lb
-            while (ub2-lb2) > 1e-3:
+            while (ub2-lb2) > 1e-4:
                 x_u = lb2 + (ub2-lb2)/3
                 x_v = lb2 + 2*(ub2-lb2)/3
                 h_u = self.h(sig,x_u,self.epsilon, self.thet)
@@ -203,7 +211,7 @@ class DRO(object):
             print('#########################################')
             print('###       Running sigma Search:       ###')
             print('#########################################')
-            self.trisearch(0, 100, self.epsilon, self.thet, 100)
+            self.trisearch(0.13, 100, self.epsilon, self.thet, 100)
             print('\n')
             print('sigma = '+str(self.sigma))
             # print(self.sigma)
@@ -219,7 +227,7 @@ class DRO(object):
 
             self.radius_calc()
 
-            self.trisearch(0, 100, self.epsilon, self.thet, 100)
+            self.trisearch(0.13, 100, self.epsilon, self.thet, 100)
 
             q = np.absolute((self.SIG**0.5)*self.sigma + self.mu)
             self.q = q
