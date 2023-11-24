@@ -97,7 +97,7 @@ class DRO(object):
 
             '''
 
-            test = np.absolute(self.thet-self.mu)
+            test = np.absolute(self.thet)
 
             J = np.sqrt(np.absolute( (1/(2*alpha))*(1+np.log(1/self.m*np.sum(np.exp(alpha*test**2)))  )))
 
