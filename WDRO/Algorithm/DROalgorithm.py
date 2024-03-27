@@ -28,12 +28,6 @@ class DRO(object):
         Returns:
 
         """
-        def dim_test(residuals):
-            rows, cols = residuals.shape
-            # Tests correct formatting of input data:
-            if rows>cols:
-                residuals = residuals.T
-                print('Input data incorrectly formatted - columns are random variables and rows are samples')
 
         self.residuals = residuals  # n x m, where n is the dimension of a sample, and
         # m is the total number of samples:
