@@ -1,5 +1,6 @@
 from scipy.optimize import minimize_scalar
 from collections import OrderedDict
+import unittest
 import pickle
 import os
 import sys
@@ -15,63 +16,81 @@ class DRO(object):
 
     """
 
-    def __init__(self, residuals: np.array, eta: float, beta: float, verbosity: bool):
+    def __init__(self, samples: list, eta: float, beta: float, verbosity: bool, known_support: bool, support=None):
         """
         Description: Initializes the DRO class object.
         
         Args:
-            residuals (numpy.array): random samples comprising the empirical distribution
+            samples (list): random samples comprising the empirical distribution
             eta (float): chance constraint risk metric
             beta (float): probability that the ambiguity set contains true distribution
             verbosity (bool): flag for printing results
-
-        Returns:
+            known_support (bool): flag for whether support of probability distribution is known
 
         """
 
-        self.residuals = residuals  # n x m, where n is the dimension of a sample, and
-        # m is the total number of samples:
-        self.n, self.m = self.residuals.shape
+        # First, convert to numpy array:
+        self.samples = np.array(samples)  # n x m, where n is the dimension of a sample, and
+        # m is the total number of samples.
+
+
+         # Check edge cases:
+        if type(samples) is not list:
+            raise TypeError("Samples must be provided in a list format.")
+        if len(samples)<=1:
+            raise Exception("The length of the samples list is <= 1. Check formatting or increase number of samples.")
+        if np.isnan(np.sum(np.sum(np.isnan(self.samples)))):
+            raise ValueError("Samples include nans.")
+
+
+        samples_dims = self.samples.ndim
+        if samples_dims==1:
+            self.m = self.samples.size
+            self.n = 1
+            print(self.n, self.m)
+        elif samples_dims == 2:
+            self.n, self.m = self.samples.shape
+        else:
+            raise Exception("Samples are >2D. Consider flattening sample data.")
+
+
+
         self.eta = eta
         self.beta = beta
-        self.numels = self.residuals
+        self.numels = self.samples
         self.verbosity = verbosity
-
-
+        self.known_support = known_support
+        self.support = support
 
 
 
     def norm_dat(self):
         """
         Description: Normalizes and centers the empirical distribution
-        
-        Args:
-
-        Returns:
 
         """
+        if self.n==1:
+            SIG = (self.samples.std())  #**2
+            sigi = SIG**(-1)
+            mu = np.mean(self.samples)
+            # thet = np.expand_dims(self.samples - mu, axis=1).T
+            thet = np.expand_dims(np.multiply(self.samples - mu, sigi), axis=1).T
+        else:
+            SIG = (self.samples.std(axis=1))  #**2
+            sigi = SIG**(-1)
+            mu = np.reshape(np.mean(self.samples, axis=1), (self.n, 1))
+            thet = np.multiply(self.samples - mu, sigi[:,np.newaxis])
 
-        SIG = (self.residuals.std(axis=1))**2
-        mu = np.reshape(np.mean(self.residuals, axis=1), (self.n, 1))
         self.mu = mu
         self.SIG = np.reshape(SIG, (self.n, 1))
-
-        sigi = SIG**(-0.5)
         self.sigi = np.reshape(sigi, (self.n, 1))
-
-        thet = np.multiply(self.residuals - self.mu, sigi[:,np.newaxis])
-
-
         self.thet = thet
+
 
 
     def radius_calc(self):
         """
         Description: Calculates the radius of the Wasserstein ambiguity set.
-        
-        Args:
-
-        Returns:
 
         """
 
@@ -91,15 +110,19 @@ class DRO(object):
 
             '''
 
-            test = np.absolute(self.thet)
+            # test = np.absolute(self.thet)
+            test = np.abs(self.samples-self.mu)
 
-            J = np.sqrt(np.absolute( (1/(2*alpha))*(1+np.log(1/self.m*np.sum(np.exp(alpha*test**2)))  )))
+            J = np.sqrt(np.absolute( (1/(2*alpha))*(1+np.log((1/self.m)*np.sum(np.exp(alpha*test**2)))  )))
 
             return J
 
-        alphaX = minimize_scalar(obj_c, method = 'bounded', bounds = (0.001, 100), tol=1e-5)
-        C = 2*alphaX.x
-        Dd = 2*C
+        if self.known_support:
+            Dd = np.sqrt(2)*self.support 
+        else:
+            alphaX = minimize_scalar(obj_c, method = 'bounded', bounds = (0.0001, 100), tol=1e-7)
+            C = 2*alphaX.x
+            Dd = 2*C
 
         self.epsilon = Dd*np.sqrt((2/self.m)*np.log(1/(1-self.beta)))
 
@@ -125,9 +148,8 @@ class DRO(object):
         '''
         initi = lam*epsilon
         result = 0
-        for k in range(self.m-2): 
-            sumterm = np.maximum((1 - (lam*np.maximum(  (sig-np.linalg.norm(thet[:, k], ord=np.inf))  , 0))), 0)  
-
+        for k in range(self.m-1): 
+            sumterm = np.maximum((1 - lam*np.maximum(  (sig - np.linalg.norm(thet[:, k], ord=np.inf))  , 0)), 0) 
             result += sumterm
 
         return initi + result/self.m
@@ -154,16 +176,16 @@ class DRO(object):
         sigu = 0
         sighat = sigmax
 
-        # Conduct trisection search over convex function h to find sigma:
-        while (sighat - sigu) > 1e-5:
+        # Conduct trisection search over convex function h to find lambda:
+        while (sighat - sigu) > 1e-3:
             sig = (sighat + sigu) / 2.0
             ub2 = ub
             lb2 = lb
-            while (ub2-lb2) > 1e-4:
+            while (ub2-lb2) > 1e-3:
                 x_u = lb2 + (ub2-lb2)/3
                 x_v = lb2 + 2*(ub2-lb2)/3
-                h_u = self.h(sig,x_u,self.epsilon, self.thet)
-                h_v = self.h(sig,x_v,self.epsilon, self.thet)
+                h_u = self.h(sig, x_u, self.epsilon, self.thet)
+                h_v = self.h(sig, x_v, self.epsilon, self.thet)
                 if h_u < h_v:
                     ub2 = x_v
                 else:
@@ -173,6 +195,7 @@ class DRO(object):
                 sigu = sig
             else:
                 sighat = sig
+
         self.sigma = sig
  
 
@@ -203,16 +226,16 @@ class DRO(object):
             print('\n')
 
             print('#########################################')
-            print('###       Running sigma Search:       ###')
+            print('###       Running Sigma Search:       ###')
             print('#########################################')
-            self.trisearch(0.13, 100, self.epsilon, self.thet, 100)
+            self.trisearch(0, 100, self.epsilon, self.thet, 100)  # 0.13, 100
             print('\n')
             print('sigma = '+str(self.sigma))
             # print(self.sigma)
             # print(self.mu)
             # print(self.sigi)
             print('\n')
-            q = np.absolute((self.SIG**0.5)*self.sigma + self.mu)
+            q = np.absolute((self.SIG)*self.sigma + self.mu)
             print('Offset = '+str(q))
             self.q = q
         else: 
@@ -221,9 +244,9 @@ class DRO(object):
 
             self.radius_calc()
 
-            self.trisearch(0.13, 100, self.epsilon, self.thet, 100)
+            self.trisearch(0, 100, self.epsilon, self.thet, 100)
 
-            q = np.absolute((self.SIG**0.5)*self.sigma + self.mu)
+            q = np.absolute((self.SIG)*self.sigma + self.mu)
             self.q = q
 
         return q
