@@ -9,7 +9,7 @@ import copy
 '''
 Simple Example inverting running the DRO reformulation on arbitrary random data.
 
-This script uses Gaussian data, but there are minimal assumptions required for the 
+This script uses uniform data, but there are minimal assumptions required for the 
 underlying distribution. For more information, please reference the following papers:
 
 
@@ -25,38 +25,50 @@ no. 5, pp. 4924-4936, Sept. 2018, doi: 10.1109/TPWRS.2018.2807623.
 
 
 
-# Generate random data:
-num_samples = 150  # number of datums
-random_data = np.random.normal(loc=0.0, scale=1.00, size = (2, num_samples))
-random_data[1,:] = random_data[1,:] # +2  # optional offset
-random_dat_1d = random_data[0,:]
-random_dat_1d2 = random_data[1,:]
-random_data = np.abs(random_data)
+def main():
 
-# Invert empirical CDF:
-eta = 0.95  # probability threshold for chance constraint
+	# Generate random data:
+	num_samples = 500  # number of datums
+	support = 10
+	random_data = support*np.random.uniform(size=(1, num_samples))
+	random_dat_1d = np.array(random_data)[0,:]
+	
 
-sort_samples = np.sort(random_dat_1d)
-invert_cdf_loc = int(np.floor(eta*num_samples))
-
-ss2 = np.sort(random_dat_1d2)
-icdf2 = int(np.floor(eta*num_samples))
-
-invert_cdf = sort_samples[invert_cdf_loc]
-ic2 = ss2[invert_cdf_loc]
-
-invert_cdf = np.array([[invert_cdf],[ic2]])
+	# Convert to list of samples (needed for DRO package):
+	random_data = random_data.tolist()[0]
+	random_dat_1d = random_dat_1d.tolist()[0]
 
 
+	# Demonstrate DRO package with Uniform synthetic data:
+	# Invert empirical CDF:
+	eta = 0.95 # probability threshold for chance constraint
 
-# DRO:
-beta = 0.99  # probability that ambiguity set includes true distribution
+	# DRO:
+	beta = 0.9  # probability that ambiguity set includes true distribution
 
-DRO_object = DRO(random_data, eta, beta, verbosity=True)
-q = DRO_object.return_q()
+	DRO_object = DRO(random_data, eta, beta, verbosity=True, known_support=True, support=support)
+	q = DRO_object.return_q()
 
-print('The inverted CDF for the provided probability threshold is:')
-print('Offset (no DRO) = '+str(invert_cdf))  # 'F^{-1}(\rho) = '+str(
+	
+	# Compare to inverting empirical CD:
+	sort_samples = np.sort(random_data)
+	invert_cdf_loc = int(np.floor(eta*num_samples))
+	invert_cdf = sort_samples[invert_cdf_loc]
+
+	print('The inverted CDF for the provided probability threshold is:')
+	print('Offset (no DRO) = '+str([invert_cdf]))
+
+	print('Using the -known support- radius option, the results have added conservatism.')
+	print('There are currently instabilities with the scipy minimize_scalar function in this application. Troubleshooting is ongoing.')
+
+
+
+
+
+if __name__ == "__main__":
+    main()
+
+
 
 
 
