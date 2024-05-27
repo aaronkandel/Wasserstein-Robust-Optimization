@@ -97,7 +97,7 @@ class DRO(object):
 
             return J
 
-        alphaX = minimize_scalar(obj_c, method = 'bounded', bounds = (0.001, 100))
+        alphaX = minimize_scalar(obj_c, method = 'bounded', bounds = (0.001, 100), tol=1e-5)
         C = 2*alphaX.x
         Dd = 2*C
 
