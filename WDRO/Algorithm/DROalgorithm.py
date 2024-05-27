@@ -101,7 +101,7 @@ class DRO(object):
         C = 2*alphaX.x
         Dd = 2*C
 
-        self.epsilon = Dd*np.sqrt((2/self.m)*np.log10(1/(1-self.beta)))
+        self.epsilon = Dd*np.sqrt((2/self.m)*np.log(1/(1-self.beta)))
 
 
     def h(self, sig: float, lam: float, epsilon: float, thet: np.array):
