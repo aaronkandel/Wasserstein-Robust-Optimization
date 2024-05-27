@@ -1,4 +1,4 @@
-from scipy.optimize import minimize_scalar
+from scipy.optimize import minimize_scalar, minimize, bisect
 from collections import OrderedDict
 import unittest
 import pickle
@@ -112,17 +112,21 @@ class DRO(object):
 
             # test = np.absolute(self.thet)
             test = np.abs(self.samples-self.mu)
-
-            J = np.sqrt(np.absolute( (1/(2*alpha))*(1+np.log((1/self.m)*np.sum(np.exp(alpha*test**2)))  )))
+ 
+            J = np.sqrt(  np.absolute( (1/(2*alpha))*(1+np.log((1/self.m)*np.sum(np.exp(alpha*test**2)))))  )
+            
+            # Artificial constraint (for BFGS):
+            if alpha<0:
+                J=100
 
             return J
 
         if self.known_support:
             Dd = np.sqrt(2)*self.support 
         else:
-            alphaX = minimize_scalar(obj_c, method = 'bounded', bounds = (0.0001, 100), tol=1e-7)
-            C = 2*alphaX.x
-            Dd = 2*C
+            alphaX = minimize(obj_c, x0=1, method='BFGS', tol=1e-8)
+            C = 2*obj_c(alphaX.x)
+            Dd = C
 
         self.epsilon = Dd*np.sqrt((2/self.m)*np.log(1/(1-self.beta)))
 
