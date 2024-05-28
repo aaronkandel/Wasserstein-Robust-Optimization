@@ -58,11 +58,6 @@ def main():
 	print('The inverted CDF for the provided probability threshold is:')
 	print('Offset (no DRO) = '+str([invert_cdf]))
 
-	print('Using the -known support- radius option, the results have added conservatism.')
-	print('There are currently instabilities with the scipy minimize_scalar function in this application. Troubleshooting is ongoing.')
-
-
-
 
 
 if __name__ == "__main__":
