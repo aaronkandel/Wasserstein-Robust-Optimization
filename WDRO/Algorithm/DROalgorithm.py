@@ -34,7 +34,7 @@ class DRO(object):
         # m is the total number of samples.
 
 
-         # Check edge cases:
+        # Check edge cases:
         if type(samples) is not list:
             raise TypeError("Samples must be provided in a list format.")
         if len(samples)<=1:
